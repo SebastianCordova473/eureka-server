@@ -1,14 +1,37 @@
-# Stage 1: Build the application
-FROM ghcr.io/graalvm/jdk-community:21.0.2 AS build
+# Stage 1: Build the application using OpenJDK 17
+FROM alpine:3.17 as builder
+
+# Install bash, curl, and OpenJDK 17
+RUN apk add --no-cache bash openjdk17 curl
+
+# Set the working directory
 WORKDIR /app
 
-COPY . .
+# Copy the Gradle wrapper and build files
+COPY gradle/ gradle/
+COPY build.gradle settings.gradle gradlew ./
+RUN chmod +x gradlew
 
-RUN gu install native-image
-RUN ./gradlew nativeBuild
+# Copy the source code
+COPY src/ src/
 
-# Stage 2: Create the final Docker image
-FROM scratch
-COPY --from=build /app/build/native/nativeCompile/eurekaserver .
+# Build the application
+RUN ./gradlew bootJar --no-daemon
 
-ENTRYPOINT ["./eurekaserver"]
+# Stage 2: Use Alpine as the base image
+FROM alpine:3.17
+
+# Install bash, curl, and OpenJDK 17
+RUN apk add --no-cache bash openjdk17 curl
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the built JAR file from the build stage
+COPY --from=builder /app/build/libs/eurekaserver-0.0.1-SNAPSHOT.jar app.jar
+
+# Expose the Eureka server port
+EXPOSE 8761
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]

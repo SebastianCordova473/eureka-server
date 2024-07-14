@@ -1,15 +1,15 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.3.0'
-    id 'io.spring.dependency-management' version '1.1.5'
+    id 'org.springframework.boot' version '3.0.5' // Update Spring Boot version
+    id 'io.spring.dependency-management' version '1.1.2'
 }
 
 group = 'com.notary.app'
 version = '0.0.1-SNAPSHOT'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 repositories {
@@ -19,7 +19,7 @@ repositories {
 }
 
 ext {
-    set('springCloudVersion', "2023.0.1")
+    set('springCloudVersion', "2022.0.1") // Compatible with Spring Boot 3.0.x
 }
 
 dependencies {
