@@ -1,8 +1,5 @@
-# Stage 1: Build the application using OpenJDK 17
-FROM alpine:3.17 as builder
-
-# Install bash, curl, and OpenJDK 17
-RUN apk add --no-cache bash openjdk17 curl
+# Stage 1: Build the application using Amazon Corretto 17
+FROM amazoncorretto:17 as builder
 
 # Set the working directory
 WORKDIR /app
@@ -18,11 +15,8 @@ COPY src/ src/
 # Build the application
 RUN ./gradlew bootJar --no-daemon
 
-# Stage 2: Use Alpine as the base image
-FROM alpine:3.17
-
-# Install bash, curl, and OpenJDK 17
-RUN apk add --no-cache bash openjdk17 curl
+# Stage 2: Use Amazon Corretto 17 as the base image
+FROM amazoncorretto:17
 
 # Set the working directory
 WORKDIR /app
