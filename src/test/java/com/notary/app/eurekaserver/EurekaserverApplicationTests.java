@@ -1,13 +1,31 @@
 package com.notary.app.eurekaserver;
 
+import static org.mockito.Mockito.mockStatic;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class EurekaServerApplicationTests {
 
     @Test
-    void contextLoads() {
+    void test(){
+        try (MockedStatic<SpringApplication> mocked = mockStatic(SpringApplication.class)) {
+
+            mocked.when(() -> { SpringApplication.run(EurekaServerApplication.class,
+                    "foo", "bar"); })
+                .thenReturn(Mockito.mock(ConfigurableApplicationContext.class));
+
+            EurekaServerApplication.main(new String[] { "foo", "bar" });
+
+            mocked.verify(() -> { SpringApplication.run(EurekaServerApplication.class,
+                "foo", "bar"); });
+
+        }
     }
 
 }
