@@ -1,4 +1,4 @@
-package com.notary.app.eurekaserver;
+package com.joga.app.eurekaserver;
 
 import static org.mockito.Mockito.mockStatic;
 import org.junit.jupiter.api.Test;
