@@ -1,31 +1,35 @@
-# Stage 1: Build the application using Amazon Corretto 17
-FROM amazoncorretto:17 as builder
+# ----------- STAGE 1: Build -----------
 
-# Set the working directory
+FROM eclipse-temurin:17-jdk-alpine AS builder
+
+# Crea directorio de trabajo
 WORKDIR /app
 
-# Copy the Gradle wrapper and build files
+# Copia el wrapper de Gradle y configura permisos
 COPY gradle/ gradle/
 COPY build.gradle settings.gradle gradlew ./
 RUN chmod +x gradlew
 
-# Copy the source code
+# Copia el código fuente
 COPY src/ src/
 
-# Build the application
+# Construye el JAR
 RUN ./gradlew bootJar --no-daemon
 
-# Stage 2: Use Amazon Corretto 17 as the base image
-FROM amazoncorretto:17
+# ----------- STAGE 2: Runtime -----------
 
-# Set the working directory
+FROM eclipse-temurin:17-jdk-alpine
+
 WORKDIR /app
 
-# Copy the built JAR file from the build stage
+# Copia el JAR generado
 COPY --from=builder /app/build/libs/eurekaserver-0.0.1-SNAPSHOT.jar app.jar
 
-# Expose the Eureka server port
+# Configura límites de memoria
+ENV JAVA_OPTS="-Xms256m -Xmx512m"
+
+# Expón el puerto de Eureka
 EXPOSE 8761
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Ejecuta el JAR con opciones JVM
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

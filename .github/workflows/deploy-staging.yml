@@ -9,7 +9,8 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
+    continue-on-error: false
+    environment: ${{ github.ref_name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -23,21 +24,30 @@ jobs:
       - name: Grant execute permission for Gradle Wrapper
         run: chmod +x ./gradlew
 
-      - name: Build the application
-        run: ./gradlew bootJar
+      - name: Run build and tests + generate coverage
+        run: ./gradlew clean build jacocoTestReport --no-daemon
 
-      - name: Install Railway CLI
-        run: npm install -g railway
+      - name: Report Jacoco Coverage
+        uses: madrapps/jacoco-report@v1.3
+        with:
+          paths: build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 85
+          min-coverage-changed-files: 85
+          title: 🧪 Coverage Jacoco
+          update-comment: true
 
-      - name: Authenticate with Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway login --token $RAILWAY_TOKEN
+      - name: Install Railway CLI (modern)
+        run: npm install -g @railway/cli
 
       - name: Deploy to Railway (develop)
         if: github.ref == 'refs/heads/develop'
-        run: railway up --service=eureka-dev --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service=eureka-server --detach
 
       - name: Deploy to Railway (staging)
         if: github.ref == 'refs/heads/staging'
-        run: railway up --service=eureka-staging --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service=eureka-server --detach
